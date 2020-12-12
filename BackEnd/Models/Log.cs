@@ -8,5 +8,6 @@ namespace BackEnd.Models
         public string IPAddress { get; set; }
         public DateTime LogDate { get; set; }
         public string LogMessage { get; set; }
+        public byte[] FileContent { get; set; }
     }
 }

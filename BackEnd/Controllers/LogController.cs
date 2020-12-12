@@ -1,11 +1,16 @@
-using System.Collections.Generic;
-using System.Linq;
 using BackEnd.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BackEnd.Controllers
 {
     [Route("api/[controller]")]
+    [ApiController]
     public class LogController : Controller
     {
         private readonly LogContext _context;
@@ -15,57 +20,38 @@ namespace BackEnd.Controllers
         }
 
         // GET: api/logs
-        public IEnumerable<Log> Get()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Log>>> Get()
         {
-            return _context.Logs.ToList();
+            return await _context.Logs.ToListAsync();
         }
 
         // GET api/logs/5
         [HttpGet("{id}")]
-        public Log Get(int id)
+        public async Task<ActionResult<Log>> Get(long id)
         {
-            return _context.Logs.FirstOrDefault(x => x.Id == id);
-        }
+            var log = await _context.Logs.FindAsync(id);
 
-        // POST api/logs
-        [HttpPost]
-        public IActionResult Post([FromBody]Log log)
-        {
-            _context.Logs.Add(log);
-            _context.SaveChanges();
-            // return StatusCode(201, log);
-            return CreatedAtAction(nameof(Get), new { id = log.Id}, log);
-        }
-
-        ////////////////// *********************************************
-
-        
-
-        // GET: api/TodoItems/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
-        {
-            var todoItem = await _context.TodoItems.FindAsync(id);
-
-            if (todoItem == null)
+            if (log == null)
             {
                 return NotFound();
             }
 
-            return todoItem;
+            return log;
         }
 
-        // PUT: api/TodoItems/5
+
+        // PUT: api/logs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTodoItem(long id, TodoItem todoItem)
+        public async Task<IActionResult> Put(long id, Log log)
         {
-            if (id != todoItem.Id)
+            if (id != log.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(todoItem).State = EntityState.Modified;
+            _context.Entry(log).State = EntityState.Modified;
 
             try
             {
@@ -73,7 +59,7 @@ namespace BackEnd.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TodoItemExists(id))
+                if (!LogExists(id))
                 {
                     return NotFound();
                 }
@@ -86,38 +72,87 @@ namespace BackEnd.Controllers
             return NoContent();
         }
 
-        // POST: api/TodoItems
+        // POST: api/logs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem todoItem)
+        public async Task<ActionResult<Log>> Post(Log log)
         {
-            _context.TodoItems.Add(todoItem);
+            _context.Logs.Add(log);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
+            return CreatedAtAction(nameof(Get), new { id = log.Id }, log);
         }
 
-        // DELETE: api/TodoItems/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTodoItem(long id)
+        // //////////////////////////////////////////////////////
+
+        // // POST api/logs
+        // [HttpPost]
+        // public IActionResult Post([FromBody]Log log)
+        // {
+        //     _context.Logs.Add(log);
+        //     _context.SaveChanges();
+        //     // return StatusCode(201, log);
+        //     return CreatedAtAction(nameof(Get), new { id = log.Id}, log);
+        // }
+
+        [HttpPost]
+        public async Task<IActionResult> Post(IList<IFormFile> files)
         {
-            var todoItem = await _context.TodoItems.FindAsync(id);
-            if (todoItem == null)
+            IList<Log> logs = new List<Log>();
+
+            foreach (IFormFile source in files)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await source.CopyToAsync(memoryStream);
+
+                    // Only upload if file contains less than 2MB
+                    if (memoryStream.Length < 2097152) {
+                        var log = new Log()
+                        {
+IPAddress = 
+                             = memoryStream.ToArray();
+                        }
+
+                    } else {
+                        return BadRequest(new {message = "The size of the files must be lesser than 2MB"});
+                    }
+                }
+            }
+
+            _context.Logs.AddRange(logs);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(Get), new { Id = logs[0].Id }, logs[0]);
+        }
+
+        private string EnsureCorrectFilename(string filename)
+        {
+            if (filename.Contains("\\"))
+                filename = filename.Substring(filename.LastIndexOf("\\") + 1);
+
+            return filename;
+        }
+
+        // DELETE: api/logs/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(long id)
+        {
+            var log = await _context.Logs.FindAsync(id);
+            if (log == null)
             {
                 return NotFound();
             }
 
-            _context.TodoItems.Remove(todoItem);
+            _context.Logs.Remove(log);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool TodoItemExists(long id)
+        private bool LogExists(long id)
         {
-            return _context.TodoItems.Any(e => e.Id == id);
+            return _context.Logs.Any(e => e.Id == id);
         }
-
-        // ************************************************************
     }
 }
