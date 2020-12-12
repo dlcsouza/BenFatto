@@ -38,43 +38,25 @@
             <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
                 <div
                     class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Add new log</h1>
+                    <h1 class="h2">Upload log files</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="btn-group mr-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="bt-upload-files">
-                                Upload log files
-                            </button>
-
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="bt-log-list">
-                                Log list
-                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="bt-log-list">Log list</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="bt-add-log">Add new log</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-8 order-md-1">
-                    <form id="form-add-log">
+                    <form id="form-upload-files">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="log-ip">IP</label>
-                                <input type="text" class="form-control" id="log-ip" placeholder="" value="" required>
-                                <div class="log-ip-invalid-feedback"></div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="log-date">Date</label>
-                                <input type="text" class="form-control" id="log-date" placeholder="" value="" required>
-                                <div class="log-ip-invalid-feedback"></div>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="log-message">Message'</label>
-                                <input type="text" class="form-control" id="log-message" placeholder="" value="" required>
-                                <div class="log-ip-invalid-feedback"></div>
+                            <div class="custom-file mb-3">
+                                <input type="file" class="custom-file-input" id="customFile" name="filename">
+                                <label class="custom-file-label" for="customFile">Choose file</label>
                             </div>
                         </div>
 
-                        <input class="btn btn-primary btn-lg" id="submit-log-message" type="submit" value="Send log">
+                        <input class="btn btn-primary btn-lg" id="send-log-files" type="submit" value="Send logs">
                     </form>
                 </div>
             </main>
@@ -89,8 +71,8 @@
 
     <script>
         $(function ($) {
-            MainScript.AddEditLog.onButtonClick();
-            MainScript.AddEditLog.onFormSubmit();
+            MainScript.UploadFiles.onButtonClick();
+            MainScript.UploadFiles.onFormSubmit();
         });
 
     </script>

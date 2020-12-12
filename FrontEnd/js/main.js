@@ -11,7 +11,7 @@ MainScript = {
         location.href = "./add.html";
         break;
 
-      case "bt-add-log":
+      case "bt-upload-files":
         location.href = "./upload.html";
         break;
 
@@ -68,6 +68,31 @@ MainScript = {
             $("#log-message-invalid-feedback").html("Valid log message is required");
             e.preventDefault();
           }
+        }
+      );
+    }
+  },
+
+  /**
+   * Functions related to the upload files page
+   */
+  UploadFiles: {
+    /**
+     * Set the click event action for the navigation buttons
+     */
+    onButtonClick: () => {
+      $(document).on("click", "#bt-log-list, #bt-add-log", (e) => {
+        MainScript.redirect(e.target.id);
+      });
+    },
+
+    /**
+     * Set the click event action for the submit button
+     */
+    onFormSubmit: () => {
+      $("#form-add-log").submit(
+        e => {
+          alert("ToDo");
         }
       );
     }
