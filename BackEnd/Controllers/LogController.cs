@@ -1,10 +1,12 @@
 using BackEnd.Models;
+using BackEnd.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace BackEnd.Controllers
@@ -21,14 +23,20 @@ namespace BackEnd.Controllers
 
         // GET: api/logs
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Log>>> Get()
+        public async Task<ActionResult<IEnumerable<LogViewModel>>> Get()
         {
-            return await _context.Logs.ToListAsync();
+            return await _context.Logs.Select(log => new LogViewModel
+            {
+                Id = log.Id,
+                IPAddress = log.IPAddress,
+                LogDate = log.LogDate,
+                LogMessage = log.LogMessage
+            }).ToListAsync();
         }
 
         // GET api/logs/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Log>> Get(long id)
+        public async Task<ActionResult<LogViewModel>> Get(long id)
         {
             var log = await _context.Logs.FindAsync(id);
 
@@ -37,19 +45,27 @@ namespace BackEnd.Controllers
                 return NotFound();
             }
 
-            return log;
+            return new LogViewModel
+            {
+                Id = log.Id,
+                IPAddress = log.IPAddress,
+                LogDate = log.LogDate,
+                LogMessage = log.LogMessage
+            };
         }
 
 
         // PUT: api/logs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(long id, Log log)
+        public async Task<IActionResult> Put(long id, LogViewModel logViewModel)
         {
-            if (id != log.Id)
+            if (id != logViewModel.Id)
             {
                 return BadRequest();
             }
+
+            Log log = GetLogById(id);
 
             _context.Entry(log).State = EntityState.Modified;
 
@@ -75,12 +91,44 @@ namespace BackEnd.Controllers
         // POST: api/logs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Log>> Post(Log log)
+        public async Task<ActionResult<Log>> Post(LogViewModel logViewModel)
         {
-            _context.Logs.Add(log);
+            IList<Log> logs = new List<Log>();
+
+            if (logViewModel.files != null && logViewModel.files.Length > 0)
+            {
+                foreach (IFormFile source in logViewModel.files)
+                {
+                    using (var reader = new StreamReader(source.OpenReadStream()))
+                    {
+                        while (reader.Peek() >= 0) 
+                        {
+                            string[] content = GetLineContent(reader.ReadLine());
+
+                            logs.Add(new Log
+                            {
+                                IPAddress = content[0],
+                                LogDate = content[1],
+                                LogMessage = content[2]
+                            });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                logs.Add(new Log
+                {
+                    IPAddress = logViewModel.IPAddress,
+                    LogDate = logViewModel.LogDate,
+                    LogMessage = logViewModel.LogMessage
+                });
+            }
+
+            _context.Logs.AddRange(logs);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(Get), new { id = log.Id }, log);
+            return CreatedAtAction(nameof(Get), new { id = logs[0].Id }, logs[0]);
         }
 
         // //////////////////////////////////////////////////////
@@ -94,45 +142,6 @@ namespace BackEnd.Controllers
         //     // return StatusCode(201, log);
         //     return CreatedAtAction(nameof(Get), new { id = log.Id}, log);
         // }
-
-        [HttpPost]
-        public async Task<IActionResult> Post(IList<IFormFile> files)
-        {
-            IList<Log> logs = new List<Log>();
-
-            foreach (IFormFile source in files)
-            {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await source.CopyToAsync(memoryStream);
-
-                    // Only upload if file contains less than 2MB
-                    if (memoryStream.Length < 2097152) {
-                        var log = new Log()
-                        {
-IPAddress = 
-                             = memoryStream.ToArray();
-                        }
-
-                    } else {
-                        return BadRequest(new {message = "The size of the files must be lesser than 2MB"});
-                    }
-                }
-            }
-
-            _context.Logs.AddRange(logs);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(Get), new { Id = logs[0].Id }, logs[0]);
-        }
-
-        private string EnsureCorrectFilename(string filename)
-        {
-            if (filename.Contains("\\"))
-                filename = filename.Substring(filename.LastIndexOf("\\") + 1);
-
-            return filename;
-        }
 
         // DELETE: api/logs/5
         [HttpDelete("{id}")]
@@ -153,6 +162,25 @@ IPAddress =
         private bool LogExists(long id)
         {
             return _context.Logs.Any(e => e.Id == id);
+        }
+
+        private Log GetLogById(long id)
+        {
+            return _context.Logs.FirstOrDefault(e => e.Id == id);
+        }
+
+        private string[] GetLineContent(string line) {
+            try
+            {
+                // mock to be deleted:
+                // string Line = "216.239.46.60 - - [04/Jan/2003:14:56:50 +0200] \"GET /~lpis/curriculum/C+Unix/Ergastiria/Week-7/filetype.c.txt HTTP/1.0\"  304 -";
+                
+                string ipAdress = line.Substring(0, line.IndexOf("- -"));
+                string logDate;
+                string logMessage;
+            } catch (System.Exception) {
+                throw new System.Exception("Log file is in invalid format.");
+            }
         }
     }
 }
