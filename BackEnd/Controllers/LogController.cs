@@ -3,6 +3,7 @@ using BackEnd.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -101,7 +102,7 @@ namespace BackEnd.Controllers
                 {
                     using (var reader = new StreamReader(source.OpenReadStream()))
                     {
-                        while (reader.Peek() >= 0) 
+                        while (reader.Peek() >= 0)
                         {
                             string[] content = GetLineContent(reader.ReadLine());
 
@@ -169,16 +170,28 @@ namespace BackEnd.Controllers
             return _context.Logs.FirstOrDefault(e => e.Id == id);
         }
 
-        private string[] GetLineContent(string line) {
+        /**
+        * Extract the line content into an array
+        * This function expects a log file that respects the following pattern:
+        * " IP - - [DateTimeGMT] \"Message\" "
+        * Example: 
+            // string line = "216.239.46.60 - - [04/Jan/2003:14:56:50 +0200] \"GET /~lpis/curriculum/C+Unix/Ergastiria/Week-7/filetype.c.txt HTTP/1.0\"  304 -";
+        */
+        private string[] GetLineContent(string line)
+        {
             try
             {
-                // mock to be deleted:
-                // string Line = "216.239.46.60 - - [04/Jan/2003:14:56:50 +0200] \"GET /~lpis/curriculum/C+Unix/Ergastiria/Week-7/filetype.c.txt HTTP/1.0\"  304 -";
-                
-                string ipAdress = line.Substring(0, line.IndexOf("- -"));
-                string logDate;
-                string logMessage;
-            } catch (System.Exception) {
+                string ipAddress = line.Substring(0, line.IndexOf("- -")).Trim();
+
+                string logDate = line.Substring(line.IndexOf("- - ") + 3).Trim();
+                logDate = logDate.Substring(1, logDate.IndexOf("]") - 1).Trim();
+
+                string logMessage = line.Substring(line.IndexOf("]") + 1).Trim();
+
+                return new string[] { ipAddress, logDate, logMessage };
+            }
+            catch (Exception)
+            {
                 throw new System.Exception("Log file is in invalid format.");
             }
         }
