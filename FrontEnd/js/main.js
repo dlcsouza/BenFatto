@@ -30,6 +30,15 @@ MainScript = {
     $(id).addClass("active");
   },
 
+  /**
+     * Create masks for log date input
+     */
+  initializeDatePicker: () => {
+    $('#log-date').datetimepicker({
+      mask: '9999/12/31 23:59',
+    });
+  },
+
 
   /**
    * Functions related to the log list page
@@ -52,8 +61,6 @@ MainScript = {
         url: "https://localhost:5001/api/logs/",
       })
         .done((d) => {
-          console.log(d);
-
           $('#table-logs').DataTable({
             dom: "lrtip",
             data: d,
@@ -62,6 +69,17 @@ MainScript = {
               { data: "ipAddress" },
               { data: "logDate" },
               { data: "logMessage" },
+              {
+                data: "id",
+                // render: (data, type, row) => {
+                //   return `<a href="edit.html?id=${data.id}>Edit</a>`
+                // }
+                orderable: false,
+                render: function (data, type, row, meta) {
+                  return '<a href="/edit.html?id=' + row.id + '">Edit</a>'
+                  // return '<a href="'+row.id+'">Edit</a>'; }
+                }
+              }
             ]
           })
         }
@@ -70,18 +88,9 @@ MainScript = {
   },
 
   /**
-   * Functions related to the add / edit log page
+   * Functions related to the add log page
    */
-  AddEditLog: {
-    /**
-     * Create masks for the IP and log date inputs
-     */
-    initialize: () => {
-      $('#log-date').datetimepicker({
-        mask: '9999/12/31 23:59',
-      });
-    },
-
+  AddLog: {
     /**
      * Set the click event action for the navigation buttons
      */
@@ -99,7 +108,7 @@ MainScript = {
         e => {
           e.preventDefault();
 
-          $("#submit-log-message").prop("disabled", true);
+          $("#submit-log").prop("disabled", true);
 
           const logViewModel = {
             IPAddress: $("#log-ip").val(),
@@ -119,10 +128,99 @@ MainScript = {
             })
             .fail((i, e) => {
               $("#submit-feedback").html("Error processing request: " + i.responseText);
-              $("#submit-log-message").prop("disabled", false);
+              $("#submit-log").prop("disabled", false);
             })
         }
       );
+    }
+  },
+
+  /**
+   * Functions related to the edit log page
+   */
+  EditLog: {
+    /**
+     * Set the click event action for the navigation buttons
+     */
+    onButtonClick: () => {
+      $(document).on("click", "#bt-upload-files, #bt-log-list", (e) => {
+        MainScript.redirect(e.target.id);
+      });
+    },
+
+    /**
+     * get the log data based on it's id
+     */
+    loadData: () => {
+      const searchParams = new URLSearchParams(window.location.search);
+
+      $.ajax({
+        url: "https://localhost:5001/api/logs/" + searchParams.get("id"),
+        method: "GET"
+      })
+        .done( (data) => {
+          $("#log-id").val(data.id);
+          $("#log-ip").val(data.ipAddress);
+          $("#log-date").val(data.logDate);
+          $("#log-message").val(data.logMessage);
+        });
+    },
+
+
+    /**
+     * Set the click event action for the update log button
+     */
+    onUpdateLogClicked: () => {
+      $("#update-log").on('click', e => {
+        $("#update-log, #delete-log").prop("disabled", true);
+
+        const id = $("#log-id").val();
+
+        const logViewModel = {
+          Id: id,
+          IPAddress: $("#log-ip").val(),
+          LogDate: $("#log-date").val(),
+          LogMessage: $("#log-message").val()
+        }
+
+        $.ajax({
+          url: "https://localhost:5001/api/logs/" + id,
+          method: "PUT",
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          data: JSON.stringify(logViewModel)
+        })
+          .done(() => {
+            MainScript.redirect("#bt-log-list");
+          })
+          .fail((i, e) => {
+            $("#submit-feedback").html("Error processing request: " + i.responseText);
+            $("#update-log, #delete-log").prop("disabled", false);
+          })
+      });
+    },
+
+    /**
+       * Set the click event action for the delete log button
+       */
+    onDeleteLogClicked: () => {
+      $("#delete-log").on('click', e => {
+        $("#update-log, #delete-log").prop("disabled", true);
+
+        const id = $("#log-id").val();
+
+        $.ajax({
+          url: "https://localhost:5001/api/logs/" + id,
+          method: "DELETE"
+        })
+          .done(() => {
+            MainScript.redirect("#bt-log-list");
+          })
+          .fail((i, e) => {
+            $("#submit-feedback").html("Error processing request: " + i.responseText);
+            $("#update-log, #delete-log").prop("disabled", false);
+          })
+      });
     }
   },
 
