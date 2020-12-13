@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BackEnd.Controllers
@@ -51,7 +52,8 @@ namespace BackEnd.Controllers
             bool isSetInitDate = initDate != defaultValue;
             bool isSetEndDate = endDate != defaultValue;
 
-            if (DateTime.Compare(initDate, endDate) > 0) {
+            if (DateTime.Compare(initDate, endDate) > 0)
+            {
                 endDate = initDate;
             }
 
@@ -62,18 +64,23 @@ namespace BackEnd.Controllers
 
             if (isSetInitDate || isSetEndDate)
             {
-                if (isSetInitDate && isSetEndDate) {
+                if (isSetInitDate && isSetEndDate)
+                {
                     logs = logs.Where(l => l.LogDate >= initDate && l.LogDate <= endDate).ToList();
 
-                } else if (isSetInitDate) {
+                }
+                else if (isSetInitDate)
+                {
                     logs = logs.Where(l => l.LogDate >= initDate).ToList();
 
-                } else {
+                }
+                else
+                {
                     logs = logs.Where(l => l.LogDate <= endDate).ToList();
-                } 
+                }
             }
 
-            List<LogViewModel> logsViewModel = logs.Select(l => 
+            List<LogViewModel> logsViewModel = logs.Select(l =>
                 new LogViewModel
                 {
                     IPAddress = l.IPAddress,
@@ -81,7 +88,7 @@ namespace BackEnd.Controllers
                     LogMessage = l.LogMessage
                 }
             ).ToList();
-                
+
             return logsViewModel;
         }
 
@@ -123,15 +130,18 @@ namespace BackEnd.Controllers
 
             _context.Entry(log).State = EntityState.Modified;
 
-            if (!String.IsNullOrEmpty(logViewModel.IPAddress)) {
+            if (!String.IsNullOrEmpty(logViewModel.IPAddress))
+            {
                 log.IPAddress = logViewModel.IPAddress;
             }
 
-            if (!String.IsNullOrEmpty(logViewModel.LogDate)) {
+            if (!String.IsNullOrEmpty(logViewModel.LogDate))
+            {
                 log.LogDate = DateTime.Parse(logViewModel.LogDate);
             }
 
-            if (!String.IsNullOrEmpty(logViewModel.LogMessage)) {
+            if (!String.IsNullOrEmpty(logViewModel.LogMessage))
+            {
                 log.LogMessage = logViewModel.LogMessage;
             }
 
@@ -161,42 +171,54 @@ namespace BackEnd.Controllers
         {
             try
             {
-                IList<Log> logs = new List<Log>();
-
-                if (logViewModel.files != null && logViewModel.files.Length > 0)
+                Log log = new Log
                 {
-                    foreach (IFormFile source in logViewModel.files)
-                    {
-                        using (var reader = new StreamReader(source.OpenReadStream()))
-                        {
-                            while (reader.Peek() >= 0)
-                            {
-                                string[] content = GetLineContent(reader.ReadLine());
+                    IPAddress = logViewModel.IPAddress,
+                    LogDate = DateTime.Parse(logViewModel.LogDate),
+                    LogMessage = logViewModel.LogMessage
+                };
 
-                                logs.Add(new Log
-                                {
-                                    IPAddress = content[0],
-                                    LogDate = DateTime.Parse(content[1]),
-                                    LogMessage = content[2]
-                                });
-                            }
+                _context.Logs.Add(log);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetLogById), new { id = log.Id }, log);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Log file is in invalid format.");
+            }
+        }
+
+        [HttpPost]
+        [Route("[action]")]
+        public async Task<ActionResult<Log>> PostFile(IList<IFormFile> files)
+        {
+            try
+            {
+                IList<Log> logs = new List<Log>();
+                foreach (IFormFile source in files)
+                {
+                    using (var reader = new StreamReader(source.OpenReadStream()))
+                    {
+                        while (reader.Peek() >= 0)
+                        {
+                            string[] content = GetLineContent(reader.ReadLine());
+
+                            logs.Add(new Log
+                            {
+                                IPAddress = content[0],
+                                LogDate = DateTime.Parse(content[1]),
+                                LogMessage = content[2]
+                            });
                         }
                     }
-                }
-                else
-                {
-                    logs.Add(new Log
-                    {
-                        IPAddress = logViewModel.IPAddress,
-                        LogDate = DateTime.Parse(logViewModel.LogDate),
-                        LogMessage = logViewModel.LogMessage
-                    });
                 }
 
                 _context.Logs.AddRange(logs);
                 await _context.SaveChangesAsync();
 
                 return CreatedAtAction(nameof(GetLogById), new { id = logs[0].Id }, logs[0]);
+
             }
             catch (Exception)
             {
@@ -236,15 +258,30 @@ namespace BackEnd.Controllers
 
             string ipAddress = line.Substring(0, line.IndexOf("- -")).Trim();
 
+            if (!IsIPValid(ipAddress)) {
+                throw new Exception("Invalid IP Address");
+            }
+
             string logDate = line.Substring(line.IndexOf("- - ") + 3).Trim();
-            logDate = logDate.Substring(1, logDate.IndexOf("]") - 1).Trim();
+            logDate = logDate.Substring(1, logDate.IndexOf(":") - 1).Trim();
 
             string logTime = line.Substring(line.IndexOf(":")).Trim();
             logTime = logTime.Substring(1, logTime.IndexOf("+") - 1).Trim();
 
             string logMessage = line.Substring(line.IndexOf("]") + 1).Trim();
 
-            return new string[] { ipAddress, $"{logDate} ${logTime}", logMessage };
+            return new string[] { ipAddress, $"{logDate} {logTime}", logMessage };
+        }
+
+        private bool IsIPValid(string IPAddress)
+        {
+            Regex check = new Regex(@"^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$");
+
+            //check to make sure an ip address was provided    
+            if (string.IsNullOrEmpty(IPAddress))
+                return false;
+            else
+                return check.IsMatch(IPAddress, 0);
         }
     }
 }

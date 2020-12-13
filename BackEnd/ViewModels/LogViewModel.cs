@@ -10,6 +10,5 @@ namespace BackEnd.ViewModels
         public string IPAddress { get; set; }
         public string LogDate { get; set; }
         public string LogMessage { get; set; }
-        public IFormFile[] files{get;set;}
     }
 }

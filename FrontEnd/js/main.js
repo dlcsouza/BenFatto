@@ -51,21 +51,21 @@ MainScript = {
       $.ajax({
         url: "https://localhost:5001/api/logs/",
       })
-      .done((d) => {
+        .done((d) => {
           console.log(d);
 
           $('#table-logs').DataTable({
             dom: "lrtip",
             data: d,
             columns: [
-              {data: "id"},
-              {data: "ipAddress"},
-              {data: "logDate"},
-              {data: "logMessage"},
+              { data: "id" },
+              { data: "ipAddress" },
+              { data: "logDate" },
+              { data: "logMessage" },
             ]
           })
         }
-      );
+        );
     }
   },
 
@@ -78,10 +78,10 @@ MainScript = {
      */
     initialize: () => {
       $('#log-date').datetimepicker({
-        mask:'9999/12/31 23:59',
+        mask: '9999/12/31 23:59',
       });
     },
-    
+
     /**
      * Set the click event action for the navigation buttons
      */
@@ -98,29 +98,29 @@ MainScript = {
       $("#form-add-log").submit(
         e => {
           e.preventDefault();
-          
+
           $("#submit-log-message").prop("disabled", true);
 
           const logViewModel = {
-              IPAddress: $("#log-ip").val(),
-              LogDate: $("#log-date").val(),
-              LogMessage: $("#log-message").val()
+            IPAddress: $("#log-ip").val(),
+            LogDate: $("#log-date").val(),
+            LogMessage: $("#log-message").val()
           }
 
           $.ajax({
             url: "https://localhost:5001/api/logs/",
             method: "POST",
-            contentType:"application/json; charset=utf-8",
-            dataType:"json",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
             data: JSON.stringify(logViewModel)
           })
-          .done(() => {
-            MainScript.redirect("#bt-log-list");
-          })
-          .fail((i, e) => {
-            $("#submit-feedback").html("Error processing request: " + e);
-            $("#submit-log-message").prop("disabled", false);
-          })
+            .done(() => {
+              MainScript.redirect("#bt-log-list");
+            })
+            .fail((i, e) => {
+              $("#submit-feedback").html("Error processing request: " + i.responseText);
+              $("#submit-log-message").prop("disabled", false);
+            })
         }
       );
     }
@@ -145,46 +145,55 @@ MainScript = {
     onInputChange: () => {
       $('#customFile').on('change', (e) => {
         let fileName = "";
-        
-        e.target.forEach( (e, i, a) => {
-            fileName += e.name + ",";
-          }
-        )
 
-        $(this).next('.custom-file-label').html(fileName);
-    })
+        for (let i = 0, f; f = e.target.files[i]; i++) {
+          fileName += f.name + ",";
+        }
+
+        $('.custom-file-label').html(fileName);
+      })
     },
 
     /**
      * Set the click event action for the submit button
      */
     onFormSubmit: () => {
-      $("#form-add-log").submit(
+      $("#form-upload-files").submit(
         e => {
           e.preventDefault();
-          
-          $("#submit-log-message").prop("disabled", true);
 
-          const logViewModel = {
-              IPAddress: $("#log-ip").val(),
-              LogDate: $("#log-date").val(),
-              LogMessage: $("#log-message").val()
+          $("#send-log-files").prop("disabled", true);
+
+          const fileupload = $("#customFile").get(0);
+          const files = fileupload.files;
+          let data = new FormData();
+          for (let i = 0, f; f = files[i]; i++) {
+            data.append("files", f);
           }
 
+          // const logViewModel = {
+          //   IPAddress: $("#log-ip").val(),
+          //   LogDate: $("#log-date").val(),
+          //   LogMessage: $("#log-message").val()
+          // }
+
           $.ajax({
-            url: "https://localhost:5001/api/logs/",
+            url: "https://localhost:5001/api/logs/PostFile",
             method: "POST",
-            contentType:"application/json; charset=utf-8",
-            dataType:"json",
-            data: JSON.stringify(logViewModel)
+            // contentType: "application/json; charset=utf-8",
+            // dataType: "json",
+            // data: JSON.stringify(logViewModel)
+            contentType: false,
+            processData: false,
+            data: data
           })
-          .done(() => {
-            MainScript.redirect("#bt-log-list");
-          })
-          .fail((i, e) => {
-            $("#submit-feedback").html("Error processing request: " + e);
-            $("#submit-log-message").prop("disabled", false);
-          })
+            .done(() => {
+              MainScript.redirect("#bt-log-list");
+            })
+            .fail((i, e) => {
+              $("#submit-feedback").html("Error processing request: " + i.responseText);
+              $("#send-log-files").prop("disabled", false);
+            })
         }
       );
     }
