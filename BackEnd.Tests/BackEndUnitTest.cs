@@ -54,7 +54,7 @@ namespace BackEnd.Tests
             // Arrange
             LogViewModel log = new LogViewModel {
                 IPAddress = "193.268.0.1",
-                LogDate = new System.DateTime(2020, 1, 1),
+                LogDate = "2020-01-01",
                 LogMessage = "Test"
             };
 
@@ -79,7 +79,7 @@ namespace BackEnd.Tests
             LogViewModel log = new LogViewModel {
                 Id = 1,
                 IPAddress = "193.268.0.1",
-                LogDate = new System.DateTime(2020, 1, 1),
+                LogDate = "2020-01-02",
                 LogMessage = "Test update"
             };
 
@@ -93,15 +93,15 @@ namespace BackEnd.Tests
             var response = await _client.PutAsync("/api/logs/1", logJson);
 
             // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            // response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [Fact]
         public async void DeleteLog()
         {
             // Act
-            var response = await _client.DeleteAsync("/api/logs/2");
+            var response = await _client.DeleteAsync("/api/logs/1");
 
             // Assert
             response.EnsureSuccessStatusCode();

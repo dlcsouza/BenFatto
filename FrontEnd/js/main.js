@@ -74,6 +74,15 @@ MainScript = {
    */
   AddEditLog: {
     /**
+     * Create masks for the IP and log date inputs
+     */
+    initialize: () => {
+      $('#log-date').datetimepicker({
+        mask:'9999/12/31 23:59',
+      });
+    },
+    
+    /**
      * Set the click event action for the navigation buttons
      */
     onButtonClick: () => {
@@ -87,13 +96,25 @@ MainScript = {
      */
     onFormSubmit: () => {
       $("#form-add-log").submit(
-        
         e => {
-          const logMessage = $('#log-message').val().trim();
-          if (!logMessage) {
-            $("#log-message-invalid-feedback").html("Valid log message is required");
-            e.preventDefault();
+          e.preventDefault();
+
+          const logViewModel = {
+              IPAddress: $("#log-ip").val(),
+              LogDate: $("#log-date").val(),
+              LogMessage: $("#log-message").val()
           }
+
+          $.ajax({
+            url: "https://localhost:5001/api/logs/",
+            method: "POST",
+            contentType:"application/json; charset=utf-8",
+            dataType:"json",
+            data: JSON.stringify(logViewModel)
+          })
+          .done(() => {
+            MainScript.redirect("#bt-log-list");
+          })
         }
       );
     }

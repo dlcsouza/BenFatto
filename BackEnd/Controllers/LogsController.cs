@@ -29,7 +29,7 @@ namespace BackEnd.Controllers
             {
                 Id = log.Id,
                 IPAddress = log.IPAddress,
-                LogDate = log.LogDate,
+                LogDate = log.LogDate.ToString(),
                 LogMessage = log.LogMessage
             }).ToListAsync();
         }
@@ -38,14 +38,7 @@ namespace BackEnd.Controllers
         [HttpGet("{ipAddress}/{initialLogDate}/{endLogDate}")]
         public ActionResult<IEnumerable<LogViewModel>> SearchLog(string ipAddress, string initialLogDate, string endLogDate)
         {
-            List<LogViewModel> logs = _context.Logs.Select(l => 
-                new LogViewModel
-                {
-                    IPAddress = l.IPAddress,
-                    LogDate = l.LogDate,
-                    LogMessage = l.LogMessage
-                }
-            ).ToList();
+            List<Log> logs = _context.Logs.ToList();
 
             DateTime initDate;
             DateTime.TryParse(initialLogDate, out initDate);
@@ -79,8 +72,17 @@ namespace BackEnd.Controllers
                     logs = logs.Where(l => l.LogDate <= endDate).ToList();
                 } 
             }
+
+            List<LogViewModel> logsViewModel = logs.Select(l => 
+                new LogViewModel
+                {
+                    IPAddress = l.IPAddress,
+                    LogDate = l.LogDate.ToString(),
+                    LogMessage = l.LogMessage
+                }
+            ).ToList();
                 
-            return logs;
+            return logsViewModel;
         }
 
         // GET api/logs/5
@@ -98,7 +100,7 @@ namespace BackEnd.Controllers
             {
                 Id = log.Id,
                 IPAddress = log.IPAddress,
-                LogDate = log.LogDate,
+                LogDate = log.LogDate.ToString(),
                 LogMessage = log.LogMessage
             };
         }
@@ -125,8 +127,8 @@ namespace BackEnd.Controllers
                 log.IPAddress = logViewModel.IPAddress;
             }
 
-            if (logViewModel.LogDate != null && logViewModel.LogDate != new DateTime()) {
-                log.LogDate = logViewModel.LogDate;
+            if (!String.IsNullOrEmpty(logViewModel.LogDate)) {
+                log.LogDate = DateTime.Parse(logViewModel.LogDate);
             }
 
             if (!String.IsNullOrEmpty(logViewModel.LogMessage)) {
@@ -186,7 +188,7 @@ namespace BackEnd.Controllers
                     logs.Add(new Log
                     {
                         IPAddress = logViewModel.IPAddress,
-                        LogDate = logViewModel.LogDate,
+                        LogDate = DateTime.Parse(logViewModel.LogDate),
                         LogMessage = logViewModel.LogMessage
                     });
                 }

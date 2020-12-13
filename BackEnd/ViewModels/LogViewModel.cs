@@ -8,7 +8,7 @@ namespace BackEnd.ViewModels
     {
         public long Id { get; set; }
         public string IPAddress { get; set; }
-        public DateTime LogDate { get; set; }
+        public string LogDate { get; set; }
         public string LogMessage { get; set; }
         public IFormFile[] files{get;set;}
     }
