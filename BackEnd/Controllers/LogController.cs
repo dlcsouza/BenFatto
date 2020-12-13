@@ -35,6 +35,55 @@ namespace BackEnd.Controllers
             }).ToListAsync();
         }
 
+        // GET: api/logs
+        // ToDo: Comment
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<LogViewModel>>> Get(string ipAddress, string initialLogDate, string endLogDate)
+        {
+            DateTime initDate;
+            DateTime.TryParse(initialLogDate, out initDate);
+
+            DateTime endDate;
+            DateTime.TryParse(endLogDate, out endDate);
+
+            DateTime defaultValue = new DateTime();
+
+            bool isSetInitDate = initDate != defaultValue;
+            bool isSetEndDate = endDate != defaultValue;
+
+            if (DateTime.Compare(initDate, endDate) > 0)
+                endDate = initDate;
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                if (isSetInitDate && isSetEndDate)
+                    return _context.Logs.Where(l => l.IPAddress.Contains(ipAddress) && l.LogDate >=  )
+                
+                else if (isSetInitDate)
+
+                else if (isSetEndDate)
+
+                else
+                {
+                    
+                }
+            }
+
+
+            else if (!string.IsNullOrEmpty(initialLogDate) && !string.IsNullOrEmpty(endLogDate))
+                return _context.Logs.Select(l => new LogViewModel)
+
+            else if (!string.IsNullOrEmpty(initialLogDate)
+                    GetByNameAddress(firstName, lastName, address);
+
+            else if (!string.IsNullOrEmpty(endLogDate)
+
+
+            else
+
+
+        }
+
         // GET api/logs/5
         [HttpGet("{id}")]
         public async Task<ActionResult<LogViewModel>> Get(long id)
@@ -55,7 +104,6 @@ namespace BackEnd.Controllers
             };
         }
 
-
         // PUT: api/logs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -66,7 +114,11 @@ namespace BackEnd.Controllers
                 return BadRequest();
             }
 
-            Log log = GetLogById(id);
+            var log = await _context.Logs.FindAsync(id);
+            if (log == null)
+            {
+                return NotFound();
+            }
 
             _context.Entry(log).State = EntityState.Modified;
 
@@ -157,11 +209,6 @@ namespace BackEnd.Controllers
         private bool LogExists(long id)
         {
             return _context.Logs.Any(e => e.Id == id);
-        }
-
-        private Log GetLogById(long id)
-        {
-            return _context.Logs.FirstOrDefault(e => e.Id == id);
         }
 
         /**
