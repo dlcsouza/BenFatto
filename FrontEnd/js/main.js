@@ -98,6 +98,8 @@ MainScript = {
       $("#form-add-log").submit(
         e => {
           e.preventDefault();
+          
+          $("#submit-log-message").prop("disabled", true);
 
           const logViewModel = {
               IPAddress: $("#log-ip").val(),
@@ -114,6 +116,10 @@ MainScript = {
           })
           .done(() => {
             MainScript.redirect("#bt-log-list");
+          })
+          .fail((i, e) => {
+            $("#submit-feedback").html("Error processing request: " + e);
+            $("#submit-log-message").prop("disabled", false);
           })
         }
       );
