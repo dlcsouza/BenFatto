@@ -7,14 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BackEnd.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LogController : Controller
+    public class LogController : ControllerBase
     {
         private readonly LogContext _context;
         public LogController(LogContext context)
@@ -24,7 +23,7 @@ namespace BackEnd.Controllers
 
         // GET: api/logs
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LogViewModel>>> Get()
+        public async Task<ActionResult<IEnumerable<LogViewModel>>> GetAllLogs()
         {
             return await _context.Logs.Select(log => new LogViewModel
             {
@@ -38,7 +37,7 @@ namespace BackEnd.Controllers
         // GET: api/logs
         // ToDo: Comment
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LogViewModel>>> Get(string ipAddress, string initialLogDate, string endLogDate)
+        public ActionResult<IEnumerable<LogViewModel>> SearchLog(string ipAddress, string initialLogDate, string endLogDate)
         {
             List<LogViewModel> logs = _context.Logs.Select(l => 
                 new LogViewModel
@@ -87,7 +86,7 @@ namespace BackEnd.Controllers
 
         // GET api/logs/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<LogViewModel>> Get(long id)
+        public async Task<ActionResult<LogViewModel>> GetLogById(long id)
         {
             var log = await _context.Logs.FindAsync(id);
 
@@ -108,7 +107,7 @@ namespace BackEnd.Controllers
         // PUT: api/logs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(long id, LogViewModel logViewModel)
+        public async Task<IActionResult> PutLog(long id, LogViewModel logViewModel)
         {
             if (id != logViewModel.Id)
             {
@@ -145,7 +144,7 @@ namespace BackEnd.Controllers
         // POST: api/logs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Log>> Post(LogViewModel logViewModel)
+        public async Task<ActionResult<Log>> PostLog(LogViewModel logViewModel)
         {
             try
             {
@@ -184,7 +183,7 @@ namespace BackEnd.Controllers
                 _context.Logs.AddRange(logs);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(Get), new { id = logs[0].Id }, logs[0]);
+                return CreatedAtAction(nameof(GetLogById), new { id = logs[0].Id }, logs[0]);
             }
             catch (Exception)
             {
