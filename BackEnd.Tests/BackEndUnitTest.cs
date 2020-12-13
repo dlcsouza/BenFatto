@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using BackEnd.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace BackEnd.Tests
 {
@@ -25,19 +27,85 @@ namespace BackEnd.Tests
         }
 
         [Fact]
-        public async void GetAllTest()
-        // public async Task<ActionResult<IEnumerable<LogViewModel>>> GetAllTest()
+        public async void GetAllLogs()
         {
-            // Arrange
-            var request = new HttpRequestMessage(new HttpMethod("GET"), "/api/logs/");
-
             // Act
-            var response = await _client.SendAsync(request);
+            var response = await _client.GetAsync("/api/logs/");
 
             // Assert
             response.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        [Fact]
+        public async void GetLogById()
+        {
+            // Act
+            var response = await _client.GetAsync("/api/logs/1");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async void PostLog()
+        {
+            // Arrange
+            LogViewModel log = new LogViewModel {
+                IPAddress = "193.268.0.1",
+                LogDate = new System.DateTime(2020, 1, 1),
+                LogMessage = "Test"
+            };
+
+            var logJson = new StringContent(
+                JsonConvert.SerializeObject(log),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _client.PostAsync("/api/logs", logJson);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
+        public async void PutLog()
+        {
+            // Arrange
+            LogViewModel log = new LogViewModel {
+                Id = 1,
+                IPAddress = "193.268.0.1",
+                LogDate = new System.DateTime(2020, 1, 1),
+                LogMessage = "Test update"
+            };
+
+            var logJson = new StringContent(
+                JsonConvert.SerializeObject(log),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _client.PutAsync("/api/logs/1", logJson);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
+        public async void DeleteLog()
+        {
+            // Act
+            var response = await _client.DeleteAsync("/api/logs/2");
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
     }
 }

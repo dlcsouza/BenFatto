@@ -121,6 +121,18 @@ namespace BackEnd.Controllers
 
             _context.Entry(log).State = EntityState.Modified;
 
+            if (!String.IsNullOrEmpty(logViewModel.IPAddress)) {
+                log.IPAddress = logViewModel.IPAddress;
+            }
+
+            if (logViewModel.LogDate != null && logViewModel.LogDate != new DateTime()) {
+                log.LogDate = logViewModel.LogDate;
+            }
+
+            if (!String.IsNullOrEmpty(logViewModel.LogMessage)) {
+                log.LogMessage = logViewModel.LogMessage;
+            }
+
             try
             {
                 await _context.SaveChangesAsync();
