@@ -40,6 +40,15 @@ namespace BackEnd.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LogViewModel>>> Get(string ipAddress, string initialLogDate, string endLogDate)
         {
+            List<LogViewModel> logs = _context.Logs.Select(l => 
+                new LogViewModel
+                {
+                    IPAddress = l.IPAddress,
+                    LogDate = l.LogDate,
+                    LogMessage = l.LogMessage
+                }
+            ).ToList();
+
             DateTime initDate;
             DateTime.TryParse(initialLogDate, out initDate);
 
@@ -51,37 +60,29 @@ namespace BackEnd.Controllers
             bool isSetInitDate = initDate != defaultValue;
             bool isSetEndDate = endDate != defaultValue;
 
-            if (DateTime.Compare(initDate, endDate) > 0)
+            if (DateTime.Compare(initDate, endDate) > 0) {
                 endDate = initDate;
+            }
 
             if (!string.IsNullOrEmpty(ipAddress))
             {
-                if (isSetInitDate && isSetEndDate)
-                    return _context.Logs.Where(l => l.IPAddress.Contains(ipAddress) && l.LogDate >=  )
-                
-                else if (isSetInitDate)
-
-                else if (isSetEndDate)
-
-                else
-                {
-                    
-                }
+                logs = logs.Where(l => l.IPAddress.Contains(ipAddress)).ToList();
             }
 
+            if (isSetInitDate || isSetEndDate)
+            {
+                if (isSetInitDate && isSetEndDate) {
+                    logs = logs.Where(l => l.LogDate >= initDate && l.LogDate <= endDate).ToList();
 
-            else if (!string.IsNullOrEmpty(initialLogDate) && !string.IsNullOrEmpty(endLogDate))
-                return _context.Logs.Select(l => new LogViewModel)
+                } else if (isSetInitDate) {
+                    logs = logs.Where(l => l.LogDate >= initDate).ToList();
 
-            else if (!string.IsNullOrEmpty(initialLogDate)
-                    GetByNameAddress(firstName, lastName, address);
-
-            else if (!string.IsNullOrEmpty(endLogDate)
-
-
-            else
-
-
+                } else {
+                    logs = logs.Where(l => l.LogDate <= endDate).ToList();
+                } 
+            }
+                
+            return logs;
         }
 
         // GET api/logs/5
