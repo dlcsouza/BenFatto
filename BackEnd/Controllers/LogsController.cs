@@ -13,10 +13,10 @@ namespace BackEnd.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LogController : ControllerBase
+    public class LogsController : ControllerBase
     {
         private readonly LogContext _context;
-        public LogController(LogContext context)
+        public LogsController(LogContext context)
         {
             _context = context;
         }
@@ -35,8 +35,7 @@ namespace BackEnd.Controllers
         }
 
         // GET: api/logs
-        // ToDo: Comment
-        [HttpGet]
+        [HttpGet("{ipAddress}/{initialLogDate}/{endLogDate}")]
         public ActionResult<IEnumerable<LogViewModel>> SearchLog(string ipAddress, string initialLogDate, string endLogDate)
         {
             List<LogViewModel> logs = _context.Logs.Select(l => 

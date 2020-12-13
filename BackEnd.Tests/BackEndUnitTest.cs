@@ -16,11 +16,12 @@ namespace BackEnd.Tests
 
         public BackEndUnitTest()
         {
-            var server = new TestServer(new WebHostBuilder()
+            var builder = new TestServer(new WebHostBuilder()
                                         .UseEnvironment("Development")
-                                        .UseStartup<Startup>());
+                                        .UseStartup<Startup>()
+                                        .UseSetting("ConnectionStrings:DefaultConnection", "Host=localhost;Port=5432;Username=postgres;Password=1;Database=Logs;"));
 
-            _client = server.CreateClient();
+            _client = builder.CreateClient();
         }
 
         [Fact]
@@ -28,7 +29,7 @@ namespace BackEnd.Tests
         // public async Task<ActionResult<IEnumerable<LogViewModel>>> GetAllTest()
         {
             // Arrange
-            var request = new HttpRequestMessage(new HttpMethod("GET"), "/api/log/");
+            var request = new HttpRequestMessage(new HttpMethod("GET"), "/api/logs/");
 
             // Act
             var response = await _client.SendAsync(request);
