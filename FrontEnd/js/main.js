@@ -140,12 +140,51 @@ MainScript = {
     },
 
     /**
+     * Sets the selected files' names into the input
+     */
+    onInputChange: () => {
+      $('#customFile').on('change', (e) => {
+        let fileName = "";
+        
+        e.target.forEach( (e, i, a) => {
+            fileName += e.name + ",";
+          }
+        )
+
+        $(this).next('.custom-file-label').html(fileName);
+    })
+    },
+
+    /**
      * Set the click event action for the submit button
      */
     onFormSubmit: () => {
       $("#form-add-log").submit(
         e => {
-          alert("ToDo");
+          e.preventDefault();
+          
+          $("#submit-log-message").prop("disabled", true);
+
+          const logViewModel = {
+              IPAddress: $("#log-ip").val(),
+              LogDate: $("#log-date").val(),
+              LogMessage: $("#log-message").val()
+          }
+
+          $.ajax({
+            url: "https://localhost:5001/api/logs/",
+            method: "POST",
+            contentType:"application/json; charset=utf-8",
+            dataType:"json",
+            data: JSON.stringify(logViewModel)
+          })
+          .done(() => {
+            MainScript.redirect("#bt-log-list");
+          })
+          .fail((i, e) => {
+            $("#submit-feedback").html("Error processing request: " + e);
+            $("#submit-log-message").prop("disabled", false);
+          })
         }
       );
     }
