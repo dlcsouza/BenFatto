@@ -94,57 +94,51 @@ namespace BackEnd.Controllers
         [HttpPost]
         public async Task<ActionResult<Log>> Post(LogViewModel logViewModel)
         {
-            IList<Log> logs = new List<Log>();
-
-            if (logViewModel.files != null && logViewModel.files.Length > 0)
+            try
             {
-                foreach (IFormFile source in logViewModel.files)
-                {
-                    using (var reader = new StreamReader(source.OpenReadStream()))
-                    {
-                        while (reader.Peek() >= 0)
-                        {
-                            string[] content = GetLineContent(reader.ReadLine());
+                IList<Log> logs = new List<Log>();
 
-                            logs.Add(new Log
+                if (logViewModel.files != null && logViewModel.files.Length > 0)
+                {
+                    foreach (IFormFile source in logViewModel.files)
+                    {
+                        using (var reader = new StreamReader(source.OpenReadStream()))
+                        {
+                            while (reader.Peek() >= 0)
                             {
-                                IPAddress = content[0],
-                                LogDate = content[1],
-                                LogMessage = content[2]
-                            });
+                                string[] content = GetLineContent(reader.ReadLine());
+
+                                logs.Add(new Log
+                                {
+                                    IPAddress = content[0],
+                                    LogDate = DateTime.Parse(content[1]),
+                                    LogMessage = content[2]
+                                });
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-                logs.Add(new Log
+                else
                 {
-                    IPAddress = logViewModel.IPAddress,
-                    LogDate = logViewModel.LogDate,
-                    LogMessage = logViewModel.LogMessage
-                });
+                    logs.Add(new Log
+                    {
+                        IPAddress = logViewModel.IPAddress,
+                        LogDate = logViewModel.LogDate,
+                        LogMessage = logViewModel.LogMessage
+                    });
+                }
+
+                _context.Logs.AddRange(logs);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(Get), new { id = logs[0].Id }, logs[0]);
             }
-
-            _context.Logs.AddRange(logs);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(Get), new { id = logs[0].Id }, logs[0]);
+            catch (Exception)
+            {
+                return BadRequest("Log file is in invalid format.");
+            }
         }
 
-        // //////////////////////////////////////////////////////
-
-        // // POST api/logs
-        // [HttpPost]
-        // public IActionResult Post([FromBody]Log log)
-        // {
-        //     _context.Logs.Add(log);
-        //     _context.SaveChanges();
-        //     // return StatusCode(201, log);
-        //     return CreatedAtAction(nameof(Get), new { id = log.Id}, log);
-        // }
-
-        // DELETE: api/logs/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(long id)
         {
@@ -179,21 +173,18 @@ namespace BackEnd.Controllers
         */
         private string[] GetLineContent(string line)
         {
-            try
-            {
-                string ipAddress = line.Substring(0, line.IndexOf("- -")).Trim();
 
-                string logDate = line.Substring(line.IndexOf("- - ") + 3).Trim();
-                logDate = logDate.Substring(1, logDate.IndexOf("]") - 1).Trim();
+            string ipAddress = line.Substring(0, line.IndexOf("- -")).Trim();
 
-                string logMessage = line.Substring(line.IndexOf("]") + 1).Trim();
+            string logDate = line.Substring(line.IndexOf("- - ") + 3).Trim();
+            logDate = logDate.Substring(1, logDate.IndexOf("]") - 1).Trim();
 
-                return new string[] { ipAddress, logDate, logMessage };
-            }
-            catch (Exception)
-            {
-                throw new System.Exception("Log file is in invalid format.");
-            }
+            string logTime = line.Substring(line.IndexOf(":")).Trim();
+            logTime = logTime.Substring(1, logTime.IndexOf("+") - 1).Trim();
+
+            string logMessage = line.Substring(line.IndexOf("]") + 1).Trim();
+
+            return new string[] { ipAddress, $"{logDate} ${logTime}", logMessage };
         }
     }
 }
