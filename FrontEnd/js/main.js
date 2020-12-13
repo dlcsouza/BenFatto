@@ -33,8 +33,8 @@ MainScript = {
   /**
      * Create masks for log date input
      */
-  initializeDatePicker: () => {
-    $('#log-date').datetimepicker({
+  initializeDatePicker: (id) => {
+    $(id).datetimepicker({
       mask: '9999/12/31 23:59',
     });
   },
@@ -53,37 +53,57 @@ MainScript = {
       });
     },
 
+    onSearchSubmit: () => {
+      $("#form-search").submit( e => {
+        e.preventDefault();
+
+        const logViewModel = {
+          IPAddress: $("#search-ip").val(),
+          initialDate: $("#search-initial-date").val(),
+          endDate: $("#search-end-date").val()
+        }        
+
+        $.ajax({
+          url: "https://localhost:5001/api/logs/search",
+          method: "POST",
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          data: JSON.stringify(logViewModel)
+        })
+        .done(d => {
+          $('#table-logs').DataTable().clear();
+          $('#table-logs').DataTable().rows.add(d);
+          $('#table-logs').DataTable().draw();
+        });
+      });
+    },
+
     /**
-     * Initialize the DataTables.net component
+     * Initialize the DataTables.net component with all logs
      */
     loadTable: () => {
       $.ajax({
         url: "https://localhost:5001/api/logs/",
       })
-        .done((d) => {
-          $('#table-logs').DataTable({
-            dom: "lrtip",
-            data: d,
-            columns: [
-              { data: "id" },
-              { data: "ipAddress" },
-              { data: "logDate" },
-              { data: "logMessage" },
-              {
-                data: "id",
-                // render: (data, type, row) => {
-                //   return `<a href="edit.html?id=${data.id}>Edit</a>`
-                // }
-                orderable: false,
-                render: function (data, type, row, meta) {
-                  return '<a href="/edit.html?id=' + row.id + '">Edit</a>'
-                  // return '<a href="'+row.id+'">Edit</a>'; }
-                }
+      .done( d => {
+        $('#table-logs').DataTable({
+          dom: "lrtip",
+          data: d,
+          columns: [
+            { data: "id" },
+            { data: "ipAddress" },
+            { data: "logDate" },
+            { data: "logMessage" },
+            {
+              data: null,
+              orderable: false,
+              render: function (data, type, row, meta) {
+                return '<a href="/edit.html?id=' + row.id + '">View Details</a>'
               }
-            ]
-          })
-        }
-        );
+            }
+          ]
+        })
+      });
     }
   },
 
@@ -104,8 +124,7 @@ MainScript = {
      * Set the click event action for the submit button
      */
     onFormSubmit: () => {
-      $("#form-add-log").submit(
-        e => {
+      $("#form-add-log").submit(e => {
           e.preventDefault();
 
           $("#submit-log").prop("disabled", true);
@@ -158,7 +177,7 @@ MainScript = {
         url: "https://localhost:5001/api/logs/" + searchParams.get("id"),
         method: "GET"
       })
-        .done( (data) => {
+        .done((data) => {
           $("#log-id").val(data.id);
           $("#log-ip").val(data.ipAddress);
           $("#log-date").val(data.logDate);
@@ -256,8 +275,7 @@ MainScript = {
      * Set the click event action for the submit button
      */
     onFormSubmit: () => {
-      $("#form-upload-files").submit(
-        e => {
+      $("#form-upload-files").submit(e => {
           e.preventDefault();
 
           $("#send-log-files").prop("disabled", true);

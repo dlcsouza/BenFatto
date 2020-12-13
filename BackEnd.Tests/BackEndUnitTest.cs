@@ -93,7 +93,6 @@ namespace BackEnd.Tests
             var response = await _client.PutAsync("/api/logs/1", logJson);
 
             // Assert
-            // response.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 

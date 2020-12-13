@@ -35,63 +35,6 @@ namespace BackEnd.Controllers
             }).ToListAsync();
         }
 
-        // GET: api/logs
-        [HttpGet("{ipAddress}/{initialLogDate}/{endLogDate}")]
-        public ActionResult<IEnumerable<LogViewModel>> SearchLog(string ipAddress, string initialLogDate, string endLogDate)
-        {
-            List<Log> logs = _context.Logs.ToList();
-
-            DateTime initDate;
-            DateTime.TryParse(initialLogDate, out initDate);
-
-            DateTime endDate;
-            DateTime.TryParse(endLogDate, out endDate);
-
-            DateTime defaultValue = new DateTime();
-
-            bool isSetInitDate = initDate != defaultValue;
-            bool isSetEndDate = endDate != defaultValue;
-
-            if (DateTime.Compare(initDate, endDate) > 0)
-            {
-                endDate = initDate;
-            }
-
-            if (!string.IsNullOrEmpty(ipAddress))
-            {
-                logs = logs.Where(l => l.IPAddress.Contains(ipAddress)).ToList();
-            }
-
-            if (isSetInitDate || isSetEndDate)
-            {
-                if (isSetInitDate && isSetEndDate)
-                {
-                    logs = logs.Where(l => l.LogDate >= initDate && l.LogDate <= endDate).ToList();
-
-                }
-                else if (isSetInitDate)
-                {
-                    logs = logs.Where(l => l.LogDate >= initDate).ToList();
-
-                }
-                else
-                {
-                    logs = logs.Where(l => l.LogDate <= endDate).ToList();
-                }
-            }
-
-            List<LogViewModel> logsViewModel = logs.Select(l =>
-                new LogViewModel
-                {
-                    IPAddress = l.IPAddress,
-                    LogDate = l.LogDate.ToString(),
-                    LogMessage = l.LogMessage
-                }
-            ).ToList();
-
-            return logsViewModel;
-        }
-
         // GET api/logs/5
         [HttpGet("{id}")]
         public async Task<ActionResult<LogViewModel>> GetLogById(long id)
@@ -113,7 +56,6 @@ namespace BackEnd.Controllers
         }
 
         // PUT: api/logs/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutLog(long id, LogViewModel logViewModel)
         {
@@ -164,8 +106,66 @@ namespace BackEnd.Controllers
             return NoContent();
         }
 
+        [HttpPost]
+        [Route("[action]")]
+
+        public ActionResult<IEnumerable<LogViewModel>> Search(LogViewModel logViewModel)
+        {
+            List<Log> logs = _context.Logs.ToList();
+
+            DateTime initDate;
+            DateTime.TryParse(logViewModel.initialDate, out initDate);
+
+            DateTime endDate;
+            DateTime.TryParse(logViewModel.endDate, out endDate);
+
+            DateTime defaultValue = new DateTime();
+
+            bool isSetInitDate = initDate != defaultValue;
+            bool isSetEndDate = endDate != defaultValue;
+
+            if (DateTime.Compare(initDate, endDate) > 0)
+            {
+                endDate = initDate;
+            }
+
+            if (!string.IsNullOrEmpty(logViewModel.IPAddress))
+            {
+                logs = logs.Where(l => l.IPAddress.Contains(logViewModel.IPAddress)).ToList();
+            }
+
+            if (isSetInitDate || isSetEndDate)
+            {
+                if (isSetInitDate && isSetEndDate)
+                {
+                    logs = logs.Where(l => l.LogDate >= initDate && l.LogDate <= endDate).ToList();
+
+                }
+                else if (isSetInitDate)
+                {
+                    logs = logs.Where(l => l.LogDate >= initDate).ToList();
+
+                }
+                else
+                {
+                    logs = logs.Where(l => l.LogDate <= endDate).ToList();
+                }
+            }
+
+            List<LogViewModel> logsViewModel = logs.Select(l =>
+                new LogViewModel
+                {
+                    Id = l.Id,
+                    IPAddress = l.IPAddress,
+                    LogDate = l.LogDate.ToString(),
+                    LogMessage = l.LogMessage
+                }
+            ).ToList();
+
+            return logsViewModel;
+        }
+
         // POST: api/logs
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Log>> PostLog(LogViewModel logViewModel)
         {
@@ -277,7 +277,6 @@ namespace BackEnd.Controllers
         {
             Regex check = new Regex(@"^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$");
 
-            //check to make sure an ip address was provided    
             if (string.IsNullOrEmpty(IPAddress))
                 return false;
             else

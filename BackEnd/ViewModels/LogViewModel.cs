@@ -10,5 +10,9 @@ namespace BackEnd.ViewModels
         public string IPAddress { get; set; }
         public string LogDate { get; set; }
         public string LogMessage { get; set; }
+
+        // Search
+        public string initialDate { get; set; }
+        public string endDate { get; set; }
     }
 }
