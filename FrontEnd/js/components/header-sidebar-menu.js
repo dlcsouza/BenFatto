@@ -19,19 +19,19 @@ class SidebarMenu extends HTMLElement {
             <div class="sidebar-sticky pt-3">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">
+                        <a class="nav-link" id="nav-log-list" href="index.html">
                             <span data-feather="home"></span>
-                            Log list <span class="sr-only">(current)</span>
+                            Log list
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" id="nav-upload-files" href="upload.html">
                             <span data-feather="file"></span>
                             Upload log files
                         </a>
                     </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" id="nav-add-log" href="add.html">
                                 <span data-feather="shopping-cart"></span>
                                 Add new log
                             </a>

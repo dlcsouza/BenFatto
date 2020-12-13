@@ -8,18 +8,28 @@ MainScript = {
   redirect: (id) => {
     switch (id) {
       case "bt-add-log":
+      case "nav-add-log":
         location.href = "./add.html";
         break;
 
       case "bt-upload-files":
+      case "nav-upload-files":
         location.href = "./upload.html";
         break;
 
       default:
-        // bt-log-list
+        // bt-log-list, nav-log-list
         location.href = "./index.html";
     }
   },
+
+  /**
+   * Add the "active" class to the menu item that represents the current page being viewed
+   */
+  setActiveMenu: (id) => {
+    $(id).addClass("active");
+  },
+
 
   /**
    * Functions related to the log list page
@@ -77,6 +87,7 @@ MainScript = {
      */
     onFormSubmit: () => {
       $("#form-add-log").submit(
+        
         e => {
           const logMessage = $('#log-message').val().trim();
           if (!logMessage) {
