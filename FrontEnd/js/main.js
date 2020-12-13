@@ -38,22 +38,24 @@ MainScript = {
      * Initialize the DataTables.net component
      */
     loadTable: () => {
-      $('#table-logs').DataTable({
-        dom: "lrtip",
-        processing: true,
-        serverSide: true,
-        ajax: {
-          url: "https://localhost:5001/api/logs/",
-          type: "GET",
-          dataSrc: '',
-          columns: [
-              { data: 'id' },
-              { data: 'ipAddress' },
-              { data: 'logDate' },
-              { data: 'logMessage' }
-          ]
+      $.ajax({
+        url: "https://localhost:5001/api/logs/",
+      })
+      .done((d) => {
+          console.log(d);
+
+          $('#table-logs').DataTable({
+            dom: "lrtip",
+            data: d,
+            columns: [
+              {data: "id"},
+              {data: "ipAddress"},
+              {data: "logDate"},
+              {data: "logMessage"},
+            ]
+          })
         }
-      });
+      );
     }
   },
 
