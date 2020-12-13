@@ -18,6 +18,8 @@ namespace BackEnd
 {
     public class Startup
     {
+        readonly string AllowLocalhost = "_AllowLocalhost";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -25,13 +27,22 @@ namespace BackEnd
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+           // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<LogContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
                 
             services.AddControllers();
+
+            services.AddCors(options =>
+        {
+            options.AddPolicy(name: AllowLocalhost,
+                              builder =>
+                              {
+                                  builder.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod();
+                              });
+        });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +56,8 @@ namespace BackEnd
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(AllowLocalhost);
 
             app.UseAuthorization();
 

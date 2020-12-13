@@ -39,7 +39,20 @@ MainScript = {
      */
     loadTable: () => {
       $('#table-logs').DataTable({
-        dom: "lrtip"
+        dom: "lrtip",
+        processing: true,
+        serverSide: true,
+        ajax: {
+          url: "https://localhost:5001/api/logs/",
+          type: "GET",
+          dataSrc: '',
+          columns: [
+              { data: 'id' },
+              { data: 'ipAddress' },
+              { data: 'logDate' },
+              { data: 'logMessage' }
+          ]
+        }
       });
     }
   },
