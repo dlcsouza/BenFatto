@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace BackEnd.Tests
 {
@@ -49,10 +51,36 @@ namespace BackEnd.Tests
         }
 
         [Fact]
+        public async void Search()
+        {
+            // Arrange
+            LogViewModel log = new LogViewModel
+            {
+                IPAddress = "193.268.0.1",
+                initialDate = "2003-01-01 01:00:00",
+                endDate = "2003-01-10 01:00:00"
+            };
+
+            var logJson = new StringContent(
+                JsonConvert.SerializeObject(log),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Act
+            var response = await _client.PostAsync("/api/logs/search", logJson);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
         public async void PostLog()
         {
             // Arrange
-            LogViewModel log = new LogViewModel {
+            LogViewModel log = new LogViewModel
+            {
                 IPAddress = "193.268.0.1",
                 LogDate = "2020-01-01",
                 LogMessage = "Test"
@@ -73,10 +101,29 @@ namespace BackEnd.Tests
         }
 
         [Fact]
+        public async void PostFile()
+        {
+            // Arrange
+            string path = "C:\\temp\\logs.log";
+            
+            var byteArrayContent = new ByteArrayContent(File.ReadAllBytes(path));
+            var multipartContent = new MultipartFormDataContent();
+            multipartContent.Add(byteArrayContent, "files", path);
+
+            // Act
+            var response = await _client.PostAsync("/api/logs/postfile", multipartContent);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
         public async void PutLog()
         {
             // Arrange
-            LogViewModel log = new LogViewModel {
+            LogViewModel log = new LogViewModel
+            {
                 Id = 1,
                 IPAddress = "193.268.0.1",
                 LogDate = "2020-01-02",
