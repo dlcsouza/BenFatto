@@ -9,14 +9,14 @@ The ORM Entity Framework tool was used to manipulate database objects.
 The FrontEnd project was implemented using HTML 5 + Bootstrap 4 + JQuery 3 + Datatables.net 1.10.
 
 An http server is needed in order to run the FrontEnd.
-To install the same http-server used during the implementation of this project, use the command "npm install http-server -g" and to execute it navigate to the folder were the solution file is located and use the command "http-server Fronted". The default port is 8080.
+To install the same http-server used during the implementation of this project, use the command "npm install http-server -g" and to execute it navigate to the folder were the solution file is located and use the command "http-server Frontend". The default port is 8080.
 
 FrontEnd description:
     The website contains a navbar with three menu items: Log list, Upload log files and Add new log.
-    In the right corner, there's also two buttons that play the same role as the menu items.
+    In the right corner, there's also two buttons that plays the same role as the menu items.
 
     Log list:
-        this page lists in a table the logs returned from the database, according to the search criteria. The table has a pagination feature as well as the number of records to be displayed.
+        this page lists in a table the logs returned from the database, according to the values informed in the search fields. The table has a pagination feature as well as the number of records to be displayed.
         When clicking on "View details", the system redirects the user to the edit / delete page of the selected record
 
     Upload log Files
